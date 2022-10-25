@@ -1,4 +1,6 @@
+from cgitb import text
 from inspect import getcoroutinelocals
+from platform import python_revision
 import numpy as np
 from OptimizationMethods import *
 from tkinter import *
@@ -14,10 +16,9 @@ def getCoordinates(w, h, x, y, m):
     return c_x, c_y
 
 wi = 1200; he = 800
-max = 20
+max = 50
 st = np.array([max/2,max/2])
 optimize = False
-
 
 def drawStartpoint(canvas):
     x, y = getLocation(wi*2/3, he, st[0],st[1], max)
@@ -50,20 +51,23 @@ def setStartposition(event):
     stpo = drawStartpoint(window)
 
 def startOptimization(event):
+    x_d = x_der.get()
+    y_d = y_der.get()
+    der = lambda z: np.array([(lambda x: eval(x_d))(z[0]),(lambda y: eval(y_d))(z[1])])
     window.delete("its")
     global optimize, gd_it, ag_it, rp_it, ad_it, st
     optimize = True
     if gd_op.get():
-        gd_it = gradient_descend(gr, 1, st, 2)
+        gd_it = gradient_descend(der, 1, st, 2)
     if ag_op.get():
-        ag_it = adagrad(gr, 1, st, 2)
+        ag_it = adagrad(der, 1, st, 2)
     if rp_op.get():
         rp_it = []
     if ad_op.get():
-        ad_it = adam(gr, 0.5, st, 2)
+        ad_it = adam(der, 0.5, st, 2)
 
 
-master = Tk(className="Optimization Visualization")
+master = Tk(className=" Optimization Visualization")
 master.configure(bg="white")
 window  = Canvas(master, width=wi, height=he)
 window.bind('<Button-1>',setStartposition)
@@ -87,10 +91,13 @@ rpcb = Checkbutton(window, text="RMSProp", variable = rp_op, fg="green")
 rpcb.place(x=wi*5/6-25,y=120)
 adcb = Checkbutton(window, text="Adam", variable = ad_op,fg="orange")
 adcb.place(x=wi*5/6-25,y=160)
-
+x_der = Entry(window)
+x_der.place(x=wi*5/6-25, y=he/2+40)
+y_der = Entry(window)
+y_der.place(x=wi*5/6-25, y=he/2+80)
+sc = Scale(window, orient=HORIZONTAL,from_=1,to_=10)
+sc.place(x=wi*5/6-25, y=he/2+200)
 stpo = drawStartpoint(window)
-
-#its = [np.array([10,10]),np.array([8,9]),np.array([1,5]),np.array([2,6]),np.array([7,6])]
 
 def mloop():
     if optimize:
@@ -106,7 +113,7 @@ def mloop():
         if ad_op.get() and len(ad_it) > 1:
             drawIteration(window,ad_it[0],ad_it[1],wi*2/3,he,max,'orange')
             ad_it.pop(0)
-    master.after(1000,mloop)
+    master.after(int(1000/sc.get()),mloop)
 
-master.after(1000, mloop)
+master.after(int(1000/sc.get()), mloop)
 master.mainloop()
