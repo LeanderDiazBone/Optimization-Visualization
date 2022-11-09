@@ -4,6 +4,7 @@ from platform import python_revision
 import numpy as np
 from OptimizationMethods import *
 from tkinter import *
+import random
 
 def getLocation(w, h, x, y, m):
     x_new = x/m*(w/2) + w/2
@@ -16,7 +17,7 @@ def getCoordinates(w, h, x, y, m):
     return c_x, c_y
 
 wi = 1200; he = 800
-max = 50
+max = 20
 st = np.array([max/2,max/2])
 optimize = False
 
@@ -54,40 +55,41 @@ def startOptimization(event):
     x_d = x_der.get()
     y_d = y_der.get()
     der = lambda z: np.array([(lambda x: eval(x_d))(z[0]),(lambda y: eval(y_d))(z[1])])
+    sder = lambda x: der(x) + np.random.normal(loc=np.array([0,0]),scale=2)
     window.delete("its")
-    global optimize, gd_it, ag_it, rp_it, ad_it, st
+    global optimize, gd_it, sm_it, rp_it, ad_it, st
     optimize = True
     if gd_op.get():
-        gd_it = gradient_descend(der, 1, st, 2)
-    if ag_op.get():
-        ag_it = adagrad(der, 1, st, 2)
+        gd_it = gradient_descend(sder, 1, st, 2)
+    if sm_op.get():
+        sm_it = sgd_momentum(sder, 1, st, 2)
     if rp_op.get():
-        rp_it = []
+        rp_it = rmsprop(sder, 1, st, 2)
     if ad_op.get():
-        ad_it = adam(der, 0.5, st, 2)
+        ad_it = adam(sder, 0.5, st, 2)
 
 
 master = Tk(className=" Optimization Visualization")
-master.configure(bg="white")
+master.configure(bg="black")
 window  = Canvas(master, width=wi, height=he)
 window.bind('<Button-1>',setStartposition)
 window.pack()
 
 createGrid(window,wi*2/3,he,max)
 
-gd_it = []; ag_it = []; rp_it = []; ad_it = []
-gd_op = BooleanVar(); ag_op = BooleanVar(); rp_op = BooleanVar(); ad_op = BooleanVar()
-gd_op.set(False); ag_op.set(False); rp_op.set(False); ad_op.set(False)
+gd_it = []; sm_it = []; rp_it = []; ad_it = []
+gd_op = BooleanVar(); sm_op = BooleanVar(); rp_op = BooleanVar(); ad_op = BooleanVar()
+gd_op.set(False); sm_op.set(False); rp_op.set(False); ad_op.set(False)
 gr = lambda x: 2*x
 
 opbutton = Button(window,text="Optimize",width = 10)
 opbutton.place(x=wi*5/6-25,y=he/2)
 opbutton.bind('<Button-1>',startOptimization)
-gdcb = Checkbutton(window, text="Gradient Descent", variable = gd_op, fg="light blue")
+gdcb = Checkbutton(window, text="Stochastic Gradient Descent", variable = gd_op, fg="light blue")
 gdcb.place(x=wi*5/6-25,y=40)
-agcb = Checkbutton(window, text="Adagrad", variable = ag_op, fg="red")
+agcb = Checkbutton(window, text="SGD with Momentum", variable = sm_op, fg="red")
 agcb.place(x=wi*5/6-25,y=80)
-rpcb = Checkbutton(window, text="RMSProp", variable = rp_op, fg="green")
+rpcb = Checkbutton(window, text="RMSProp", variable = rp_op, fg="light green")
 rpcb.place(x=wi*5/6-25,y=120)
 adcb = Checkbutton(window, text="Adam", variable = ad_op,fg="orange")
 adcb.place(x=wi*5/6-25,y=160)
@@ -104,9 +106,9 @@ def mloop():
         if gd_op.get() and len(gd_it) > 1:
             drawIteration(window,gd_it[0],gd_it[1],wi*2/3,he,max,'light blue')
             gd_it.pop(0)
-        if ag_op.get() and len(ag_it) > 1:
-            drawIteration(window,ag_it[0],ag_it[1],wi*2/3,he,max,'red')
-            ag_it.pop(0)
+        if sm_op.get() and len(sm_it) > 1:
+            drawIteration(window,sm_it[0],sm_it[1],wi*2/3,he,max,'red')
+            sm_it.pop(0)
         if rp_op.get() and len(rp_it) > 1:
             drawIteration(window,rp_it[0],rp_it[1],wi*2/3,he,max,'green')
             rp_it.pop(0)

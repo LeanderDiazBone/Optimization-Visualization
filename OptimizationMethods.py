@@ -18,19 +18,27 @@ def gradient_descend(g, n, x, sc = 10e-8):
 # Inputs
 # Epsilon:                              e (\epsilon)
 
-def adagrad(g, n, x, sc = 10e-8, e = 10e-8):
+def sgd_momentum(g, n, x, sc = 10e-8, b = 0.9):
     it = [x]
     u = np.zeros(np.shape(x))                           
     cur = x
     while np.linalg.norm(g(cur)) >= sc:
         gr = g(cur)
-        u = u + gr**2
-        cur = cur-n*gr/(u**0.5+e)
+        u = b*u + (1-b)*gr
+        cur = cur-n*u
         it.append(cur)
     return it
 
-def rmsprop(g, n, x, sc = 10e-8):
-    pass
+def rmsprop(g, n, x, sc = 10e-8, b = 0.99, e = 10e-8):
+    it = [x]
+    v = np.zeros(np.shape(x))                           
+    cur = x
+    while np.linalg.norm(g(cur)) >= sc:
+        gr = g(cur)
+        v = b*v + (1-b)*gr**2
+        cur = cur-n*gr/(v**0.5+e)
+        it.append(cur)
+    return it
 
 # Inputs:
 # First-order momentum parameter:       a (\alpha) 
