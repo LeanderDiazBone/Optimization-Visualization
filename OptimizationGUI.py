@@ -55,18 +55,18 @@ def startOptimization(event):
     x_d = x_der.get()
     y_d = y_der.get()
     der = lambda z: np.array([(lambda x: eval(x_d))(z[0]),(lambda y: eval(y_d))(z[1])])
-    sder = lambda x: der(x) + np.random.normal(loc=np.array([0,0]),scale=2)
+    sder = lambda x: der(x) + np.random.normal(loc=np.array([0,0]),scale=np.absolute(der(x))*0.35)
     window.delete("its")
     global optimize, gd_it, sm_it, rp_it, ad_it, st
     optimize = True
     if gd_op.get():
-        gd_it = gradient_descend(sder, 1, st, 2)
+        gd_it = gradient_descend(sder, 1, st, 0.25)
     if sm_op.get():
-        sm_it = sgd_momentum(sder, 1, st, 2)
+        sm_it = sgd_momentum(sder, 0.15, st, 0.25)
     if rp_op.get():
-        rp_it = rmsprop(sder, 1, st, 2)
+        rp_it = rmsprop(sder, 3, st, 0.25)
     if ad_op.get():
-        ad_it = adam(sder, 0.5, st, 2)
+        ad_it = adam(sder, 1, st, 0.25)
 
 
 master = Tk(className=" Optimization Visualization")
@@ -95,10 +95,13 @@ adcb = Checkbutton(window, text="Adam", variable = ad_op,fg="orange")
 adcb.place(x=wi*5/6-25,y=160)
 x_der = Entry(window)
 x_der.place(x=wi*5/6-25, y=he/2+40)
+x_der.insert(0,"2*x")
 y_der = Entry(window)
 y_der.place(x=wi*5/6-25, y=he/2+80)
+y_der.insert(0,"2*y")
 sc = Scale(window, orient=HORIZONTAL,from_=1,to_=10)
 sc.place(x=wi*5/6-25, y=he/2+200)
+sc.set(3)
 stpo = drawStartpoint(window)
 
 def mloop():

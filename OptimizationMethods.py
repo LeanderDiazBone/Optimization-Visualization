@@ -18,7 +18,7 @@ def gradient_descend(g, n, x, sc = 10e-8):
 # Inputs
 # Epsilon:                              e (\epsilon)
 
-def sgd_momentum(g, n, x, sc = 10e-8, b = 0.9):
+def sgd_momentum(g, n, x, sc = 10e-8, b = 0.8):
     it = [x]
     u = np.zeros(np.shape(x))                           
     cur = x
@@ -29,14 +29,15 @@ def sgd_momentum(g, n, x, sc = 10e-8, b = 0.9):
         it.append(cur)
     return it
 
-def rmsprop(g, n, x, sc = 10e-8, b = 0.99, e = 10e-8):
+def rmsprop(g, n, x, sc = 10e-8, b = 0.9, e = 10e-8):
     it = [x]
     v = np.zeros(np.shape(x))                           
     cur = x
     while np.linalg.norm(g(cur)) >= sc:
         gr = g(cur)
         v = b*v + (1-b)*gr**2
-        cur = cur-n*gr/(v**0.5+e)
+        v_til = v/(1-b)
+        cur = cur-n*gr/(v_til**0.5+e*np.ones(np.shape(x)))
         it.append(cur)
     return it
 
@@ -45,7 +46,7 @@ def rmsprop(g, n, x, sc = 10e-8, b = 0.99, e = 10e-8):
 # Second-order momentum parameter:      b (\beta)
 
 
-def adam(g, n, x, sc = 10e-8, a = 0.9, b = 0.999, e = 10e-8):
+def adam(g, n, x, sc = 10e-8, a = 0.8, b = 0.9, e = 10e-8):
     it = [x]
     v = np.zeros(np.shape(x))                           #v_t (first-order gradient with momentum)
     u = np.zeros(np.shape(x))                           #u_t (second-order gradient with momentum)
@@ -56,7 +57,6 @@ def adam(g, n, x, sc = 10e-8, a = 0.9, b = 0.999, e = 10e-8):
         u = b*u+(1-b)*(gr**2)
         v_til = v/(1-a)
         u_til = u/(1-b) 
-        cur = cur-n*(v_til)/(u_til**0.5+e)
-        #print(np.array2string(gr)+" "+np.array2string(v)+" "+np.array2string(u)+" "+np.array2string(cur)+" ")
+        cur = cur-n*(v_til)/(u_til**0.5+e*np.ones(np.shape(x))) 
         it.append(cur)
     return it
